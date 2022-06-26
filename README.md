@@ -1,5 +1,13 @@
 # cloud_music_app
 
+### 使用的技术栈
+```
+vue3
+router
+vuex
+vant
+```
+
 ## Project setup
 ```
 npm install
