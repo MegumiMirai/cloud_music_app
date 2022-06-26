@@ -74,6 +74,8 @@
 </template>
 
 <script>
+import { onMounted } from 'vue'
+import { getAllMusic } from '@/request/api/item.js'
 export default {
   setup(props) {
     if ((props.playlist.creator = '')) {
@@ -81,7 +83,7 @@ export default {
         sessionStorage.getItem('itemDetail').playlist
       ).creator
     }
-    console.log(props)
+    // console.log(props)
     function countChange(num) {
       if (num >= 100000000) {
         return (num / 100000000).toFixed(1) + '亿'
@@ -227,7 +229,7 @@ export default {
 
 .itemTopFooter{
   width: 100%;
-  height: 2rem;
+  height: 1.5rem;
   display: flex;
   justify-content: space-around;
   .item{
