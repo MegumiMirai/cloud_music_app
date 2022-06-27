@@ -1,6 +1,6 @@
 <template>
   <router-view></router-view>
-  <FooterMusic></FooterMusic>
+  <FooterMusic v-show="$store.state.isFooterMusicShow"></FooterMusic>
 </template>
 
 <script>

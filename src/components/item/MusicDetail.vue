@@ -3,7 +3,7 @@
     <img class="bgImg" :src="musiclist.al.picUrl" alt="" />
     <div class="detailTop">
       <div class="detailTopLeft">
-        <svg class="icon" aria-hidden="true" @click="updateDetailShow(false)">
+        <svg class="icon" aria-hidden="true" @click="backHome">
           <use xlink:href="#icon-a-zuojiantouzhixiangzuojiantou"></use>
         </svg>
         <div class="detail">
@@ -26,14 +26,42 @@
         </svg>
       </div>
     </div>
-    <div class="detailContent" v-show="isLyricShow">
+    <div
+      class="detailContent"
+      v-show="!isLyricShow"
+      @click="isLyricShow = true"
+    >
       <img src="@/assets/cp.png" alt="" class="img_cp" />
-      <img src="@/assets/cz.png" alt="" class="img_cz" :class="{img_cz_active:!isBtnShow}" />
-      <img :src="musiclist.al.picUrl" alt="" class="img_al" :class="{img_al_active:!isBtnShow, img_al_paused:isBtnShow}" />
+      <img
+        src="@/assets/cz.png"
+        alt=""
+        class="img_cz"
+        :class="{ img_cz_active: !isBtnShow }"
+      />
+      <img
+        :src="musiclist.al.picUrl"
+        alt=""
+        class="img_al"
+        :class="{ img_al_active: !isBtnShow, img_al_paused: isBtnShow }"
+      />
     </div>
 
-    <div class="songLyric" ref="songLyricRef">
-      <p v-for="item in lyric" :key="item" :class="{active:currentTime * 1000 >= item.time && currentTime * 1000 < item.next}">{{item.lyric}}</p>
+    <div
+      class="songLyric"
+      ref="songLyricRef"
+      v-show="isLyricShow"
+      @click="isLyricShow = false"
+    >
+      <p
+        v-for="item in lyric"
+        :key="item"
+        :class="{
+          active:
+            currentTime * 1000 >= item.time && currentTime * 1000 < item.next,
+        }"
+      >
+        {{ item.lyric }}
+      </p>
     </div>
     <div class="detailFooter">
       <div class="footerTop">
@@ -53,12 +81,14 @@
           <use xlink:href="#icon-liebiao-"></use>
         </svg>
       </div>
-      <div class="footerContent">123</div>
+      <div class="footerContent">
+        <input type="range" ref="inputRef" class="range" min="0" :max="duration" v-model="currentTime" step="0.05" @change="changeTime">
+      </div>
       <div class="footerFooter">
         <svg class="icon" aria-hidden="true">
           <use xlink:href="#icon-xunhuan"></use>
         </svg>
-        <svg class="icon" aria-hidden="true">
+        <svg class="icon" aria-hidden="true" @click="goPlay(-1)">
           <use xlink:href="#icon-shangyishoushangyige"></use>
         </svg>
         <svg
@@ -72,7 +102,7 @@
         <svg class="icon bofang" aria-hidden="true" v-else @click="play">
           <use xlink:href="#icon-zanting"></use>
         </svg>
-        <svg class="icon" aria-hidden="true">
+        <svg class="icon" aria-hidden="true" @click="goPlay(1)">
           <use xlink:href="#icon-xiayigexiayishou"></use>
         </svg>
         <svg class="icon" aria-hidden="true">
@@ -88,65 +118,91 @@ import { mapMutations, mapState } from 'vuex'
 import { Vue3Marquee } from 'vue3-marquee'
 import 'vue3-marquee/dist/style.css'
 export default {
-  data(){
+  data() {
     return {
-      isLyricShow: false
+      isLyricShow: false,
     }
-  }, 
+  },
   async mounted() {
     // console.log(this.musiclist.id)
     // console.log(this.songLyric);
-    console.log(this.lyric);
+    console.log(this.lyric)
+    this.addDuration()
   },
-  props: ['musiclist', 'play', 'isBtnShow', 'musiclistIndex'],
+  props: ['musiclist', 'play', 'isBtnShow', 'musiclistIndex','addDuration'],
   components: {
     Vue3Marquee,
   },
   methods: {
-    ...mapMutations(['updateDetailShow']),
+    ...mapMutations(['updateDetailShow', 'updateMusicIndeIndex']),
+    backHome() {
+      this.updateDetailShow()
+      this.isLyricShow = false
+    },
+    goPlay(num) {
+      // 点击上一首下一首更换歌曲
+      let index = this.musiclistIndex + num
+      if (index < 0) {
+        index = this.musiclist.length - 1
+      }
+      if (index >= this.musiclist.length) {
+        index = 0
+      }
+      console.log(index)
+      this.updateMusicIndeIndex(index)
+    },
+    changeTime(e){
+      console.log(e.timeStamp);
+    }
   },
-  computed:{
-    ...mapState(['songLyric', 'currentTime']),
-    lyric(){
+  computed: {
+    ...mapState(['songLyric', 'currentTime', 'duration']),
+    lyric() {
       let arr
-      if(this.songLyric){
-        arr = this.songLyric.split(/[(\r\n)\r\n]+/).map(item => {
+      if (this.songLyric) {
+        arr = this.songLyric.split(/[(\r\n)\r\n]+/).map((item) => {
           let min = item.slice(1, 3)
           let sec = item.slice(4, 6)
           let mill = item.slice(7, 10)
           let lyric = item.slice(11, item.length)
-          let time = parseInt(min) * 60 * 1000 + parseInt(sec) * 1000 + parseInt(mill)
-          if(isNaN(Number(mill))){
+          let time =
+            parseInt(min) * 60 * 1000 + parseInt(sec) * 1000 + parseInt(mill)
+          if (isNaN(Number(mill))) {
             mill = item.slice(7, 9)
             lyric = item.slice(10, item.length)
-            time = parseInt(min) * 60 * 1000 + parseInt(sec) * 1000 + parseInt(mill)
+            time =
+              parseInt(min) * 60 * 1000 + parseInt(sec) * 1000 + parseInt(mill)
           }
-            // console.log(min,sec, mill, lyric);
-          return {min, sec, mill, lyric, time}
+          // console.log(min,sec, mill, lyric);
+          return { min, sec, mill, lyric, time }
         })
 
         arr.forEach((item, index) => {
-          if(index === arr.length - 1){
-            item.next = 0
-          }else{
+          if (index === arr.length - 1 || isNaN(arr[index + 1].time)) {
+            item.next = 10000000
+          } else {
             item.next = arr[index + 1].time
           }
-            
-        });
+        })
       }
       return arr
-    }
+    },
   },
-  watch:{
-    currentTime(){
+  watch: {
+    currentTime(newTime) {
       // console.log(1223);
-      let p = document.querySelector("p.active")
+      let p = document.querySelector('p.active')
       // console.log([p]);
-      if(p.offsetTop > 300){
-        this.$refs.songLyricRef.scrollTop = p.offsetTop - 300
+      if (p) {
+        if (p.offsetTop > 280) {
+          this.$refs.songLyricRef.scrollTop = p.offsetTop - 280
+        }
       }
-    }
-  }
+      if(newTime >= this.duration){
+        this.play(1)
+      }
+    },
+  },
 }
 </script>
 
@@ -239,6 +295,7 @@ export default {
     flex-direction: column;
     align-items: center;
     position: relative;
+    margin-top: 1.5rem;
     .img_cp {
       width: 5rem;
       height: 5rem;
@@ -276,26 +333,26 @@ export default {
       animation: rotate_al 30s linear infinite;
     }
 
-    .img_al_active{
+    .img_al_active {
       animation-play-state: running;
     }
 
-    .img_al_paused{
+    .img_al_paused {
       animation-play-state: paused;
     }
 
     @keyframes rotate_al {
-      0%{
+      0% {
         transform: rotateZ(0deg);
       }
 
-      100%{
+      100% {
         transform: rotateZ(360deg);
       }
     }
   }
 
-  .songLyric{
+  .songLyric {
     width: 100%;
     height: 8.5rem;
     display: flex;
@@ -303,13 +360,13 @@ export default {
     align-items: center;
     margin-top: 1.2rem;
     overflow: scroll;
-    p{
+    p {
       color: #ddd;
-      margin-bottom: .4rem;
+      margin-bottom: 0.4rem;
     }
 
-    .active{
-      font-size: .5rem;
+    .active {
+      font-size: 0.5rem;
       color: pink;
     }
   }
@@ -329,6 +386,7 @@ export default {
       display: flex;
       justify-content: space-around;
       align-items: center;
+      margin-right: .44rem;
       .icon {
         fill: #fff;
       }
@@ -337,6 +395,12 @@ export default {
     .footerContent {
       width: 100%;
       height: 0.5rem;
+
+      .range{
+        width: 100%;
+        padding-right: .2rem;
+        height: .06rem;
+      }
     }
 
     .footerFooter {
@@ -345,6 +409,7 @@ export default {
       display: flex;
       justify-content: space-around;
       align-items: center;
+      margin-right: .44rem;
 
       .icon {
         fill: #fff;

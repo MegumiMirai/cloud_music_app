@@ -1,5 +1,6 @@
 import { createStore } from 'vuex'
 import { getSong } from '@/request/api/item.js'
+import {phoneLogin} from '@/request/api/home.js'
 
 export default createStore({
   state: {
@@ -27,7 +28,12 @@ export default createStore({
     isBtnShow: true, //暂停按钮的显示
     detailShow: false, // 音乐详情页开关
     songLyric: {}, // 歌词
-    currentTime: 0 // 播放音乐的当前时间
+    currentTime: 0, // 播放音乐的当前时间
+    duration: 0, // 歌曲总时长
+    isLogin: false, // 判断是否登录
+    isFooterMusicShow: true, // 判断底部音乐播放是否显示
+    Token: '',
+    userInfo: {} //用户信息
   },
   getters: {},
   mutations: {
@@ -49,6 +55,22 @@ export default createStore({
     updateCurrentTime(state, time){
       state.currentTime = time
       console.log(time);
+    },
+    updateDuration(state, duration){
+      state.duration = duration
+    },
+    pushPlayList(state, song){
+      state.musiclist.push(song)
+    },
+    updateIsLogin(state, value){
+      state.isLogin = value
+    },
+    updateToken(state, token){
+      state.token = 'bearer ' + token
+      localStorage.setItem('token', state.token)
+    },
+    updateUserInfo(state, userInfo){
+      state.userInfo = userInfo
     }
   },
   actions: {
@@ -56,6 +78,11 @@ export default createStore({
       const {data: res} = await getSong(id)
       console.log(res);
       context.commit('updateSongLyric', res.lrc.lyric)
+    },
+    async Login(context, data){
+      const res = await phoneLogin(data)
+      // console.log(res);
+      return res
     }
   },
   modules: {},

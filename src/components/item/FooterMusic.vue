@@ -28,7 +28,7 @@
       position="bottom"
       :style="{ height: '100%' }"
     >
-      <MusicDetail :musiclist="musiclist[musiclistIndex]" :isBtnShow="isBtnShow" :play="play" :musiclistIndex="musiclistIndex"></MusicDetail>
+      <MusicDetail :musiclist="musiclist[musiclistIndex]" :isBtnShow="isBtnShow" :play="play" :musiclistIndex="musiclistIndex" :addDuration="addDuration"></MusicDetail>
     </van-popup>
   </div>
 </template>
@@ -48,9 +48,14 @@ export default {
   mounted() {
     // console.log(this.$refs);
     // this.$refs.bofang.autoplay = true
-    console.log(this.musiclist);
-    console.log(this.musiclist[this.musiclistIndex].id);
+    // console.log(this.musiclist);
+    // console.log(this.musiclist[this.musiclistIndex].id);
     this.$store.dispatch('getSongLyric', this.musiclist[this.musiclistIndex].id)
+    // this.updateTime()
+  },
+  updated(){
+    this.$store.dispatch('getSongLyric', this.musiclist[this.musiclistIndex].id)
+    this.addDuration()
   },
   methods: {
     play() {
@@ -64,12 +69,15 @@ export default {
         clearInterval(this.timer) // 音乐暂停就清除定时器
       }
     },
+    addDuration(){
+      this.updateDuration(this.$refs.audio.duration)
+    },
     updateTime(){
       this.timer = setInterval(() => {
         this.updateCurrentTime(this.$refs.audio.currentTime)
       }, 1000)
     },
-    ...mapMutations(['isBtnShowChange', 'updateDetailShow', 'updateCurrentTime']),
+    ...mapMutations(['isBtnShowChange', 'updateDetailShow', 'updateCurrentTime', 'updateDuration']),
   },
   watch: {
     musiclistIndex() {
@@ -78,7 +86,9 @@ export default {
       // 如果当前是暂停的状态，要改变播放的图标
       this.isBtnShowChange(false)
 
-       this.$store.dispatch('getSongLyric', this.musiclist[this.musiclistIndex].id)
+      // this.updateTime()
+      this.play()
+      this.$store.dispatch('getSongLyric', this.musiclist[this.musiclistIndex].id)
     },
     musiclist() {
       if (this.$refs.audio.paused) {
